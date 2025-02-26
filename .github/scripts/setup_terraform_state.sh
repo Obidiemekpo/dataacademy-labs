@@ -78,7 +78,15 @@ echo "  }"
 echo "}"
 
 # Create backend.tf file
-cat > ../infra/backend.tf << EOF
+# First, ensure the infra directory exists
+INFRA_DIR="${GITHUB_WORKSPACE}/infra"
+if [ ! -d "$INFRA_DIR" ]; then
+    echo "Creating infra directory at $INFRA_DIR"
+    mkdir -p "$INFRA_DIR"
+fi
+
+# Now create the backend.tf file
+cat > "${INFRA_DIR}/backend.tf" << EOF
 terraform {
   backend "azurerm" {
     resource_group_name  = "$RESOURCE_GROUP_NAME"
@@ -89,4 +97,4 @@ terraform {
 }
 EOF
 
-echo "Created backend.tf file in the infra directory." 
+echo "Created backend.tf file in the infra directory at ${INFRA_DIR}/backend.tf" 
