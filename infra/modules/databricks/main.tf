@@ -32,16 +32,16 @@ resource "azurerm_databricks_workspace" "databricks" {
 
 # Add a sleep after Databricks workspace creation to ensure it's fully provisioned
 resource "time_sleep" "wait_for_databricks" {
-  depends_on = [azurerm_databricks_workspace.databricks]
+  depends_on      = [azurerm_databricks_workspace.databricks]
   create_duration = "60s"
 }
 
 output "databricks_workspace_id" {
-  value = azurerm_databricks_workspace.databricks.id
+  value      = azurerm_databricks_workspace.databricks.id
   depends_on = [time_sleep.wait_for_databricks]
 }
 
 output "databricks_workspace_url" {
-  value = azurerm_databricks_workspace.databricks.workspace_url
+  value      = azurerm_databricks_workspace.databricks.workspace_url
   depends_on = [time_sleep.wait_for_databricks]
 } 

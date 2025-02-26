@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "main" {
 
 # Add a sleep after resource group creation to ensure it's fully provisioned
 resource "time_sleep" "wait_for_resource_group" {
-  depends_on = [azurerm_resource_group.main]
+  depends_on      = [azurerm_resource_group.main]
   create_duration = "30s"
 }
 
