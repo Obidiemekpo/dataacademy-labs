@@ -41,6 +41,12 @@ resource "azurerm_resource_group" "main" {
   tags     = var.tags
 }
 
+# Add a sleep after resource group creation to ensure it's fully provisioned
+resource "time_sleep" "wait_for_resource_group" {
+  depends_on = [azurerm_resource_group.main]
+  create_duration = "30s"
+}
+
 # Databricks Module
 module "databricks" {
   source              = "./modules/databricks"
@@ -48,6 +54,7 @@ module "databricks" {
   location            = var.location
   environment         = var.environment
   tags                = var.tags
+  depends_on          = [time_sleep.wait_for_resource_group]
 }
 
 # Data Factory Module
@@ -57,6 +64,7 @@ module "datafactory" {
   location            = var.location
   environment         = var.environment
   tags                = var.tags
+  depends_on          = [time_sleep.wait_for_resource_group]
 }
 
 # SQL Module
@@ -77,6 +85,7 @@ module "keyvault" {
   location            = var.location
   environment         = var.environment
   tags                = var.tags
+  depends_on          = [time_sleep.wait_for_resource_group]
 }
 
 # Storage Module
@@ -87,6 +96,7 @@ module "storage" {
   environment         = var.environment
   prefix              = var.prefix
   tags                = var.tags
+  depends_on          = [time_sleep.wait_for_resource_group]
 }
 
 # RBAC Module
