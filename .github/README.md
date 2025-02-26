@@ -61,6 +61,17 @@ The workflow automatically creates a storage account for Terraform state if it d
 - Container: `tfstate`
 - Location: `uksouth`
 
+### Authentication for Terraform Backend
+
+The workflow uses Service Principal authentication for the Terraform backend. The necessary credentials are extracted from the `AZURE_CREDENTIALS` secret and passed to Terraform as environment variables:
+
+- `ARM_CLIENT_ID`: The Service Principal client ID
+- `ARM_CLIENT_SECRET`: The Service Principal client secret
+- `ARM_SUBSCRIPTION_ID`: The Azure subscription ID
+- `ARM_TENANT_ID`: The Azure tenant ID
+
+These environment variables are automatically set by the workflow for all Terraform commands (init, validate, plan, apply).
+
 ### Customizing the Storage Account Name
 
 When manually triggering the workflow, you can specify a custom prefix for the storage account name:
@@ -93,4 +104,45 @@ If you encounter issues with the workflow:
 2. Verify that the Service Principal has the correct permissions
 3. Ensure that the `AZURE_CREDENTIALS` secret is correctly formatted
 4. Check if the storage account name is globally unique
-5. If you get an error about the storage account name being too long or containing invalid characters, try a shorter or simpler prefix 
+5. If you get an error about the storage account name being too long or containing invalid characters, try a shorter or simpler prefix
+
+### Common Issues
+
+#### Backend Authentication Error
+
+If you encounter an error like:
+```
+Error: Error building ARM Config: Authenticating using the Azure CLI is only supported as a User (not a Service Principal).
+```
+
+This means Terraform is trying to use the Azure CLI authentication method instead of Service Principal authentication. The workflow has been updated to:
+
+1. Extract Service Principal credentials from the `AZURE_CREDENTIALS` secret
+2. Pass these credentials to Terraform as environment variables
+3. Configure the backend to use these environment variables for authentication
+
+If you're running Terraform locally, you need to set these environment variables manually:
+```bash
+export ARM_CLIENT_ID="your-client-id"
+export ARM_CLIENT_SECRET="your-client-secret"
+export ARM_SUBSCRIPTION_ID="your-subscription-id"
+export ARM_TENANT_ID="your-tenant-id"
+terraform init
+```
+
+#### Backend.tf File Creation
+
+If you encounter an error like:
+```
+./.github/scripts/setup_terraform_state.sh: line XX: ../infra/backend.tf: No such file or directory
+```
+
+This means the script couldn't find or create the `infra` directory. The workflow has been updated to:
+1. Create the `infra` directory before running the setup script
+2. Use absolute paths to ensure the backend.tf file is created in the correct location
+3. Include fallback mechanisms to find the repository root in different environments
+
+If you still encounter this issue, you can manually create the `infra` directory before running the workflow:
+```bash
+mkdir -p infra
+``` 

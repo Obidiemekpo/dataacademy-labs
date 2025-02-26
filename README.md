@@ -87,6 +87,17 @@ To use the GitHub Actions workflow:
 
 3. Push changes to the `main` branch or create a pull request to trigger the workflow.
 
+### Authentication for Terraform Backend
+
+The workflow uses Service Principal authentication for the Terraform backend. The necessary credentials are extracted from the `AZURE_CREDENTIALS` secret and passed to Terraform as environment variables:
+
+- `ARM_CLIENT_ID`: The Service Principal client ID
+- `ARM_CLIENT_SECRET`: The Service Principal client secret
+- `ARM_SUBSCRIPTION_ID`: The Azure subscription ID
+- `ARM_TENANT_ID`: The Azure tenant ID
+
+These environment variables are automatically set by the workflow for all Terraform commands.
+
 ### Customizing the Terraform State Storage
 
 When manually triggering the workflow, you can specify a custom prefix for the Terraform state storage account name:

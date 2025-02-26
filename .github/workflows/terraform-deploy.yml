@@ -38,6 +38,15 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: Extract Azure Credentials
+      id: azure_creds
+      run: |
+        # Extract credentials from the AZURE_CREDENTIALS secret
+        echo "client_id=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .clientId)" >> $GITHUB_OUTPUT
+        echo "client_secret=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .clientSecret)" >> $GITHUB_OUTPUT
+        echo "subscription_id=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .subscriptionId)" >> $GITHUB_OUTPUT
+        echo "tenant_id=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .tenantId)" >> $GITHUB_OUTPUT
+
     - name: Make setup script executable
       run: chmod +x ./.github/scripts/setup_terraform_state.sh
 
@@ -55,6 +64,11 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
 
     - name: Terraform Init
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
       run: terraform init
       working-directory: ${{ env.WORKING_DIR }}
 
@@ -63,15 +77,30 @@ jobs:
       working-directory: ${{ env.WORKING_DIR }}
 
     - name: Terraform Validate
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
       run: terraform validate
       working-directory: ${{ env.WORKING_DIR }}
 
     - name: Terraform Plan
       if: github.event_name == 'pull_request'
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
       run: terraform plan -no-color
       working-directory: ${{ env.WORKING_DIR }}
 
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
       run: terraform apply -auto-approve
       working-directory: ${{ env.WORKING_DIR }} 
