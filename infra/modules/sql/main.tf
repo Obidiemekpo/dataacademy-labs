@@ -19,10 +19,10 @@ variable "tags" {
 }
 
 locals {
-  sql_server_name     = "sql-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
-  sql_database_name   = "sqldb-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
-  sql_admin_username  = "sqladmin"
-  sql_admin_password  = "P@ssw0rd1234!" # In production, use Azure Key Vault to store this securely
+  sql_server_name    = "sql-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
+  sql_database_name  = "sqldb-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
+  sql_admin_username = "sqladmin"
+  sql_admin_password = "P@ssw0rd1234!" # In production, use Azure Key Vault to store this securely
 }
 
 resource "azurerm_mssql_server" "sql_server" {
@@ -37,11 +37,11 @@ resource "azurerm_mssql_server" "sql_server" {
 }
 
 resource "azurerm_mssql_database" "sql_database" {
-  name                = local.sql_database_name
-  server_id           = azurerm_mssql_server.sql_server.id
-  sku_name            = "Basic" # Lowest free tier
-  max_size_gb         = 2
-  tags                = var.tags
+  name        = local.sql_database_name
+  server_id   = azurerm_mssql_server.sql_server.id
+  sku_name    = "Basic" # Lowest free tier
+  max_size_gb = 2
+  tags        = var.tags
 }
 
 # Allow Azure services to access the SQL server

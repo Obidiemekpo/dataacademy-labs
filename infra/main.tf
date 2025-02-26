@@ -98,6 +98,6 @@ module "rbac" {
   storage_account_id    = module.storage.storage_account_id
   adls_id               = module.storage.storage_account_id
   key_vault_id          = module.keyvault.key_vault_id
-  sql_server_id         = "" # Commented out SQL module: module.sql.sql_server_id
+  sql_server_id         = ""                                                    # Commented out SQL module: module.sql.sql_server_id
   depends_on            = [module.datafactory, module.storage, module.keyvault] # Removed SQL module dependency
 } 

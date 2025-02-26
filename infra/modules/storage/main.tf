@@ -38,7 +38,7 @@ resource "azurerm_storage_account" "storage_account" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  is_hns_enabled           = true  # Hierarchical namespace for ADLS Gen2
+  is_hns_enabled           = true # Hierarchical namespace for ADLS Gen2
   tags                     = var.tags
 }
 
