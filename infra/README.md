@@ -4,10 +4,10 @@ This directory contains Terraform modules to provision Azure resources for a dat
 
 - Azure Databricks
 - Azure Data Factory
-- Azure SQL Database (Basic tier)
 - Azure Key Vault
 - Azure Storage Account
 - Azure Data Lake Storage Gen2
+- Azure SQL Database (Basic tier) - *temporarily excluded*
 
 ## Module Structure
 
@@ -15,10 +15,10 @@ The infrastructure is organized into the following modules:
 
 - `databricks`: Provisions an Azure Databricks workspace
 - `datafactory`: Provisions an Azure Data Factory instance with system-assigned managed identity
-- `sql`: Provisions an Azure SQL Server and Database with Basic tier (lowest free tier)
 - `keyvault`: Provisions an Azure Key Vault for storing secrets
 - `storage`: Provisions an Azure Storage Account with ADLS Gen2 capabilities
 - `rbac`: Configures Role-Based Access Control (RBAC) for the resources
+- `sql`: Provisions an Azure SQL Server and Database with Basic tier (lowest free tier) - *temporarily excluded*
 
 ## Naming Conventions
 
@@ -38,10 +38,12 @@ All resources follow Azure's recommended naming conventions:
 The RBAC module configures the following permissions:
 
 - Data Factory has Storage Blob Data Contributor access to the Storage Account
-- Data Factory has Storage Blob Data Owner access to ADLS Gen2
+- Data Factory has Storage Blob Data Owner access to the Storage Account (for ADLS Gen2)
 - Data Factory has access to Key Vault secrets
 
-Note: SQL Server admin access needs to be configured manually through the Azure Portal or using a different approach.
+Note: 
+- SQL Server admin access needs to be configured manually through the Azure Portal or using a different approach.
+- For ADLS Gen2 permissions, we assign roles at the Storage Account level rather than the filesystem level, as the filesystem ID is not a valid scope for role assignments.
 
 ## Configuration with terraform.tfvars
 
@@ -49,7 +51,7 @@ The infrastructure can be configured using a `terraform.tfvars` file. Here's an 
 
 ```hcl
 resource_group_name = "rg-dataacademy-prod"
-location            = "East US"
+location            = "UK South"
 environment         = "prod"
 prefix              = "da"
 tags = {
@@ -94,4 +96,5 @@ The main variables that can be configured are:
 ## Notes
 
 - Storage account names must be between 3-24 characters, lowercase letters and numbers only. The module automatically truncates the name if it exceeds 24 characters.
-- The SQL Server administrator password is hardcoded in the SQL module. In a production environment, this should be stored securely in Azure Key Vault. 
+- The SQL Server module is temporarily excluded from deployment. To include it, uncomment the SQL module section in `main.tf`.
+- ADLS Gen2 permissions are assigned at the Storage Account level, not at the filesystem level. 

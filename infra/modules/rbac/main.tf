@@ -19,7 +19,7 @@ variable "storage_account_id" {
 }
 
 variable "adls_id" {
-  description = "ID of the ADLS Gen2 filesystem"
+  description = "ID of the Storage Account (for ADLS Gen2)"
   type        = string
 }
 
@@ -29,8 +29,9 @@ variable "key_vault_id" {
 }
 
 variable "sql_server_id" {
-  description = "ID of the SQL Server"
+  description = "ID of the SQL Server (optional - can be empty string when SQL is not deployed)"
   type        = string
+  default     = ""
 }
 
 # Get current client config for tenant ID
@@ -43,8 +44,8 @@ resource "azurerm_role_assignment" "df_storage_contributor" {
   principal_id         = var.data_factory_identity
 }
 
-# Grant Data Factory Managed Identity Contributor access to ADLS Gen2
-resource "azurerm_role_assignment" "df_adls_contributor" {
+# Grant Data Factory Managed Identity Owner access to ADLS Gen2 (using storage account ID)
+resource "azurerm_role_assignment" "df_adls_owner" {
   scope                = var.adls_id
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = var.data_factory_identity

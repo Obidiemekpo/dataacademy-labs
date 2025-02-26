@@ -10,7 +10,7 @@ variable "resource_group_name" {
 
 variable "location" {
   description = "Azure region for resources"
-  default     = "East US"
+  default     = "UK South"
 }
 
 variable "environment" {
@@ -60,6 +60,7 @@ module "datafactory" {
 }
 
 # SQL Module
+/*
 module "sql" {
   source              = "./modules/sql"
   resource_group_name = azurerm_resource_group.main.name
@@ -67,6 +68,7 @@ module "sql" {
   environment         = var.environment
   tags                = var.tags
 }
+*/
 
 # Key Vault Module
 module "keyvault" {
@@ -94,8 +96,8 @@ module "rbac" {
   data_factory_id       = module.datafactory.data_factory_id
   data_factory_identity = module.datafactory.data_factory_identity
   storage_account_id    = module.storage.storage_account_id
-  adls_id               = module.storage.adls_id
+  adls_id               = module.storage.storage_account_id
   key_vault_id          = module.keyvault.key_vault_id
-  sql_server_id         = module.sql.sql_server_id
-  depends_on            = [module.datafactory, module.storage, module.keyvault, module.sql]
+  sql_server_id         = "" # Commented out SQL module: module.sql.sql_server_id
+  depends_on            = [module.datafactory, module.storage, module.keyvault] # Removed SQL module dependency
 } 

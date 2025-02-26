@@ -56,7 +56,7 @@ output "storage_account_name" {
 }
 
 output "adls_id" {
-  value = azurerm_storage_data_lake_gen2_filesystem.adls.id
+  value = azurerm_storage_account.storage_account.id
 }
 
 output "adls_name" {

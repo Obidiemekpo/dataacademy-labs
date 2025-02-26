@@ -8,7 +8,7 @@ The `infra` directory contains Terraform modules to provision the following Azur
 
 - Azure Databricks
 - Azure Data Factory
-- Azure SQL Database (Basic tier)
+- Azure SQL Database (Basic tier) - *temporarily excluded*
 - Azure Key Vault
 - Azure Storage Account
 - Azure Data Lake Storage Gen2
@@ -33,7 +33,7 @@ All Azure resources follow Microsoft's recommended naming conventions:
 The infrastructure can be configured using a `terraform.tfvars` file in the `infra` directory. This allows you to customize:
 
 - Resource group name
-- Azure region
+- Azure region (currently set to UK South)
 - Environment (dev, test, prod)
 - Prefix for resource naming
 - Tags for all resources
@@ -55,6 +55,51 @@ The infrastructure can be configured using a `terraform.tfvars` file in the `inf
    ```
    terraform apply tfplan
    ```
+
+> **Note:** The SQL Server module is temporarily excluded from deployment. To include it, uncomment the SQL module section in `infra/main.tf`.
+
+## Automated Deployment with GitHub Actions
+
+This repository includes a GitHub Actions workflow for automated deployment of the Terraform infrastructure. The workflow:
+
+1. Sets up a storage account for Terraform state if it doesn't exist
+2. Initializes Terraform
+3. Validates the Terraform configuration
+4. Plans the deployment (for pull requests)
+5. Applies the changes (for pushes to main branch)
+
+### Setting up GitHub Actions
+
+To use the GitHub Actions workflow:
+
+1. Create an Azure Service Principal with Owner permissions:
+   ```bash
+   az ad sp create-for-rbac --name "GitHubActionsTerraform" --role Owner --scopes /subscriptions/<SUBSCRIPTION_ID> --sdk-auth
+   ```
+
+2. Add the JSON output as a GitHub secret named `AZURE_CREDENTIALS`:
+   - Go to your GitHub repository
+   - Navigate to Settings > Secrets and variables > Actions
+   - Click "New repository secret"
+   - Name: `AZURE_CREDENTIALS`
+   - Value: Paste the entire JSON output from the previous step
+   - Click "Add secret"
+
+3. Push changes to the `main` branch or create a pull request to trigger the workflow.
+
+### Customizing the Terraform State Storage
+
+When manually triggering the workflow, you can specify a custom prefix for the Terraform state storage account name:
+
+1. Go to the Actions tab in your GitHub repository
+2. Select the "Terraform Deploy" workflow
+3. Click "Run workflow"
+4. Enter a custom prefix in the "Prefix for the Terraform state storage account name" field
+5. Click "Run workflow"
+
+The storage account name will be `st<your-prefix>tfstate`. This allows you to create separate state storage accounts for different environments or projects.
+
+For more details, see the [GitHub Workflow documentation](.github/README.md).
 
 ## Security
 
