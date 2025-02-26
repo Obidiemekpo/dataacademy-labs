@@ -42,7 +42,12 @@ jobs:
       run: chmod +x ./.github/scripts/setup_terraform_state.sh
 
     - name: Setup Terraform State Storage
-      run: ./.github/scripts/setup_terraform_state.sh "${{ env.STORAGE_PREFIX }}"
+      run: |
+        # Ensure infra directory exists
+        mkdir -p ${{ github.workspace }}/infra
+        
+        # Run the setup script
+        ./.github/scripts/setup_terraform_state.sh "${{ env.STORAGE_PREFIX }}"
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
