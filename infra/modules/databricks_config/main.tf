@@ -92,8 +92,6 @@ resource "databricks_cluster" "small_cluster" {
   spark_version           = "13.3.x-scala2.12"
   node_type_id            = "Standard_DS3_v2"
   autotermination_minutes = 20
-  is_pinned = false
-
   # Single node cluster configuration
   # For single node clusters, set num_workers to 0 and configure spark_conf
   num_workers = 0
