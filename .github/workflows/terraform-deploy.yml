@@ -110,7 +110,6 @@ jobs:
       working-directory: ${{ env.WORKING_DIR }}
 
     - name: Terraform Plan
-      if: github.event_name == 'pull_request'
       env:
         ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
         ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
