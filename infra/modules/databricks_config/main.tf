@@ -49,69 +49,42 @@ locals {
   workspace_numeric_id = split(".", split("-", var.databricks_workspace_url)[1])[0]
 }
 
-# Create Databricks Access Connector for Unity Catalog
-resource "azurerm_databricks_access_connector" "unity" {
-  name                = local.access_connector_name
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  identity {
-    type = "SystemAssigned"
-  }
-  tags = var.tags
-}
+// Commenting out Metastore and Access Connector resources to disable their creation
 
-# Grant Storage Blob Data Contributor role to the Access Connector
-resource "azurerm_role_assignment" "access_connector_storage" {
-  scope                = var.storage_account_id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_databricks_access_connector.unity.identity[0].principal_id
-}
+// # Create Databricks Access Connector for Unity Catalog
+// resource "azurerm_databricks_access_connector" "unity" {
+//   name                = local.access_connector_name
+//   resource_group_name = var.resource_group_name
+//   location            = var.location
+//   identity {
+//     type = "SystemAssigned"
+//   }
+//   tags = var.tags
+// }
 
-# Wait for role assignment to propagate
-resource "time_sleep" "wait_for_role_assignment" {
-  depends_on      = [azurerm_role_assignment.access_connector_storage]
-  create_duration = "30s"
-}
+// # Grant Storage Blob Data Contributor role to the Access Connector
+// resource "azurerm_role_assignment" "access_connector_storage" {
+//   scope                = var.storage_account_id
+//   role_definition_name = "Storage Blob Data Contributor"
+//   principal_id         = azurerm_databricks_access_connector.unity.identity[0].principal_id
+// }
 
-# Create Unity Catalog Metastore
-resource "databricks_metastore" "this" {
-  name = local.metastore_name
-  storage_root = format(
-    "abfss://unity-catalog@%s.dfs.core.windows.net/",
-    var.storage_account_name
-  )
-  owner      = "account users"
-  depends_on = [time_sleep.wait_for_role_assignment]
-}
+// # Wait for role assignment to propagate
+// resource "time_sleep" "wait_for_role_assignment" {
+//   depends_on      = [azurerm_role_assignment.access_connector_storage]
+//   create_duration = "30s"
+// }
 
-# Assign Metastore to Workspace
-resource "databricks_metastore_assignment" "this" {
-  metastore_id = databricks_metastore.this.id
-  workspace_id = local.workspace_numeric_id
-}
-
-# Create Unity Catalog
-resource "databricks_catalog" "landing" {
-  metastore_id = databricks_metastore.this.id
-  name         = local.catalog_name
-  comment      = "Landing catalog for raw data"
-  properties = {
-    purpose = "landing_zone"
-  }
-  force_destroy = true
-  depends_on = [databricks_metastore_assignment.this]
-}
-
-# Create Schema in the Catalog
-resource "databricks_schema" "landing" {
-  catalog_name = databricks_catalog.landing.name
-  name         = local.schema_name
-  comment      = "Landing schema for raw data"
-  properties = {
-    kind = "landing"
-  }
-  force_destroy = true
-}
+// # Create Unity Catalog Metastore
+// resource "databricks_metastore" "this" {
+//   name = local.metastore_name
+//   storage_root = format(
+//     "abfss://unity-catalog@%s.dfs.core.windows.net/",
+//     var.storage_account_name
+//   )
+//   owner      = "account users"
+//   depends_on = [time_sleep.wait_for_role_assignment]
+// }
 
 # Create a small Databricks cluster
 resource "databricks_cluster" "small_cluster" {
@@ -141,21 +114,15 @@ resource "databricks_cluster" "small_cluster" {
   }
 }
 
-output "access_connector_id" {
-  value = azurerm_databricks_access_connector.unity.id
-}
+// Commenting out outputs for disabled resources
 
-output "metastore_id" {
-  value = databricks_metastore.this.id
-}
+// output "access_connector_id" {
+//   value = azurerm_databricks_access_connector.unity.id
+// }
 
-output "catalog_id" {
-  value = databricks_catalog.landing.id
-}
-
-output "schema_id" {
-  value = databricks_schema.landing.id
-}
+// output "metastore_id" {
+//   value = databricks_metastore.this.id
+// }
 
 output "cluster_id" {
   value = databricks_cluster.small_cluster.id
