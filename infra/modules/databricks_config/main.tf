@@ -85,38 +85,27 @@ locals {
 //   owner      = "account users"
 //   depends_on = [time_sleep.wait_for_role_assignment]
 // }
+data "databricks_node_type" "smallest" {
+  local_disk = true
+}
 
-# Create a small Databricks cluster
+data "databricks_spark_version" "latest_lts" {
+  long_term_support = true
+}
+
 resource "databricks_cluster" "small_cluster" {
-  cluster_name            = local.cluster_name
-  spark_version           = "13.3.x-scala2.12"
-  node_type_id            = "Standard_DS3_v2"
+  cluster_name            = "Shared Autoscaling"
+  spark_version           = data.databricks_spark_version.latest_lts.id
+  node_type_id            = data.databricks_node_type.smallest.id
   autotermination_minutes = 20
-  # Single node cluster configuration
-  # For single node clusters, set num_workers to 0 and configure spark_conf
-  num_workers = 0
+  autoscale {
+    min_workers = 1
+    max_workers = 1
+  }
   spark_conf = {
-    "spark.databricks.cluster.profile" : "singleNode"
-    "spark.master" : "local[*]"
-  }
-
-  # Azure-specific attributes
-  azure_attributes {
-    availability       = "ON_DEMAND_AZURE"
-    first_on_demand    = 1
-    spot_bid_max_price = -1
-  }
-
-  # Tags for the cluster
-  custom_tags = {
-    "ResourceClass" = "SingleNode"
-    "Environment"   = var.environment
-  }
-
-  # Use lifecycle meta-argument to ignore changes to attributes that might be modified outside of Terraform
-  lifecycle {
-    ignore_changes = []
-    
+    "spark.databricks.io.cache.enabled" : true,
+    "spark.databricks.io.cache.maxDiskUsage" : "50g",
+    "spark.databricks.io.cache.maxMetaDataCache" : "1g"
   }
 }
 
