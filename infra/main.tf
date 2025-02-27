@@ -2,6 +2,12 @@ provider "azurerm" {
   features {}
 }
 
+# Configure Databricks provider
+provider "databricks" {
+  host = module.databricks.databricks_workspace_url
+  # Authentication will be handled via Azure CLI or environment variables
+}
+
 # Variables
 variable "resource_group_name" {
   description = "Name of the resource group"
@@ -110,4 +116,18 @@ module "rbac" {
   key_vault_id          = module.keyvault.key_vault_id
   sql_server_id         = ""                                                    # Commented out SQL module: module.sql.sql_server_id
   depends_on            = [module.datafactory, module.storage, module.keyvault] # Removed SQL module dependency
+}
+
+# Databricks Configuration Module (Unity Catalog, Access Connector, and Cluster)
+module "databricks_config" {
+  source                 = "./modules/databricks_config"
+  resource_group_name    = azurerm_resource_group.main.name
+  location               = var.location
+  environment            = var.environment
+  tags                   = var.tags
+  databricks_workspace_id = module.databricks.databricks_workspace_id
+  databricks_workspace_url = module.databricks.databricks_workspace_url
+  storage_account_id     = module.storage.storage_account_id
+  storage_account_name   = module.storage.storage_account_name
+  depends_on             = [module.databricks, module.storage]
 } 

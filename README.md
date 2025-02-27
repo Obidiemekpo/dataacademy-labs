@@ -12,6 +12,7 @@ The `infra` directory contains Terraform modules to provision the following Azur
 - Azure Key Vault
 - Azure Storage Account
 - Azure Data Lake Storage Gen2
+- Databricks Unity Catalog, Access Connector, and Cluster
 
 The infrastructure is designed with proper RBAC (Role-Based Access Control) to allow Azure Data Factory to access all resources securely using managed identity.
 
@@ -21,12 +22,22 @@ All Azure resources follow Microsoft's recommended naming conventions:
 
 - Resource Group: `rg-<environment>-<project>`
 - Databricks Workspace: `dbw-<environment>-<project>`
+- Databricks Access Connector: `dbw-ac-<environment>-<project>`
 - Data Factory: `adf-<environment>-<project>`
 - SQL Server: `sql-<environment>-<project>`
 - SQL Database: `sqldb-<environment>-<project>`
 - Key Vault: `kv-<environment>-<project>`
 - Storage Account: `st<prefix><environment><project>` (limited to 24 characters)
 - ADLS Gen2 Container: `data`
+
+## Databricks Configuration
+
+The infrastructure includes a comprehensive Databricks setup:
+
+- **Workspace**: Standard Databricks workspace
+- **Access Connector**: For Unity Catalog integration with Azure Storage
+- **Unity Catalog**: Metastore, catalog, and schema for data governance
+- **Small Cluster**: Autoscaling cluster (1-3 workers) for development and testing
 
 ## Configuration
 
@@ -120,6 +131,7 @@ The infrastructure is configured with the following security measures:
 - RBAC is implemented to grant least-privilege access
 - Key Vault is used for storing secrets
 - SQL Server is configured with Azure AD authentication
+- Databricks Access Connector uses managed identity for secure storage access
 
 ## Contributing
 

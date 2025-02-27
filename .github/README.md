@@ -52,6 +52,19 @@ Add this JSON as a GitHub secret named `AZURE_CREDENTIALS`:
 5. Value: Paste the entire JSON output from the previous step
 6. Click "Add secret"
 
+### 3. Databricks Provider Configuration (Optional)
+
+For the Databricks provider, you'll need to configure authentication. The workflow is set up to use environment variables:
+
+- `DATABRICKS_HOST`: The URL of your Databricks workspace
+- `DATABRICKS_TOKEN`: A Databricks personal access token
+
+These are currently left empty in the workflow file, as the Databricks workspace is created as part of the Terraform deployment. For a complete deployment that includes Unity Catalog and cluster configuration, you'll need to:
+
+1. Run the initial deployment to create the Databricks workspace
+2. Generate a Databricks token
+3. Update the workflow with these values or add them as GitHub secrets
+
 ## Terraform State Storage
 
 The workflow automatically creates a storage account for Terraform state if it doesn't exist. The storage account details are:
@@ -145,4 +158,18 @@ This means the script couldn't find or create the `infra` directory. The workflo
 If you still encounter this issue, you can manually create the `infra` directory before running the workflow:
 ```bash
 mkdir -p infra
-``` 
+```
+
+#### Databricks Provider Authentication
+
+If you encounter an error related to Databricks provider authentication:
+
+```
+Error: Unable to authenticate to Databricks: cannot configure default credentials
+```
+
+This means the Databricks provider couldn't authenticate. To resolve this:
+
+1. Ensure the Databricks workspace has been created first
+2. Generate a Databricks personal access token
+3. Set the `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables in the workflow or as GitHub secrets 
