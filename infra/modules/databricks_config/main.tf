@@ -117,16 +117,8 @@ resource "databricks_cluster" "small_cluster" {
 
   # Use lifecycle meta-argument to ignore changes to attributes that might be modified outside of Terraform
   lifecycle {
-    ignore_changes = [
-      # Ignore changes to tags that might be added by Databricks
-      custom_tags,
-      # Ignore changes to attributes that might be modified by the provider
-      azure_attributes,
-      # Ignore other attributes that might cause drift
-      spark_conf,
-      # Ignore is_pinned to prevent provider inconsistency
-      is_pinned
-    ]
+    ignore_changes = []
+    
   }
 }
 
