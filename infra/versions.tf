@@ -10,7 +10,7 @@ terraform {
     }
     databricks = {
       source  = "databricks/databricks"
-      version = "~> 1.0"
+      version = "~> 1.67.0"
     }
   }
   required_version = ">= 1.0.0"

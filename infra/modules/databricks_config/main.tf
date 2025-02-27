@@ -98,6 +98,7 @@ resource "databricks_catalog" "landing" {
   properties = {
     purpose = "landing_zone"
   }
+  force_destroy = true
   depends_on = [databricks_metastore_assignment.this]
 }
 
@@ -109,6 +110,7 @@ resource "databricks_schema" "landing" {
   properties = {
     kind = "landing"
   }
+  force_destroy = true
 }
 
 # Create a small Databricks cluster
@@ -118,15 +120,20 @@ resource "databricks_cluster" "small_cluster" {
   node_type_id            = "Standard_DS3_v2"
   autotermination_minutes = 20
 
-  autoscale {
-    min_workers = 1
-    max_workers = 3
-  }
-
+  # Single node cluster configuration
   spark_conf = {
     "spark.databricks.cluster.profile" : "singleNode"
     "spark.master" : "local[*]"
   }
+  
+  # Must explicitly set num_workers to 0 for single node
+  num_workers = 0
+  
+  # Remove autoscale block for single node cluster
+  # autoscale {
+  #   min_workers = 1
+  #   max_workers = 3
+  # }
 
   custom_tags = {
     "ResourceClass" = "SingleNode"
