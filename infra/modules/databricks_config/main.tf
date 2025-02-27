@@ -123,7 +123,9 @@ resource "databricks_cluster" "small_cluster" {
       # Ignore changes to attributes that might be modified by the provider
       azure_attributes,
       # Ignore other attributes that might cause drift
-      spark_conf
+      spark_conf,
+      # Ignore is_pinned to prevent provider inconsistency
+      is_pinned
     ]
   }
 }
