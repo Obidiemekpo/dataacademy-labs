@@ -102,15 +102,22 @@ resource "databricks_cluster" "small_cluster" {
   # Must explicitly set num_workers to 0 for single node
   num_workers = 0
   
-  # Remove autoscale block for single node cluster
-  # autoscale {
-  #   min_workers = 1
-  #   max_workers = 3
-  # }
-
+  # Explicitly set attributes that are causing inconsistencies
+  is_pinned     = false
+  is_single_node = true  # Set to true for single node cluster
+  use_ml_runtime = false
+  
+  # Use custom_tags with the x_Environment key to match what the provider expects
   custom_tags = {
     "ResourceClass" = "SingleNode"
-    "Environment"   = var.environment
+    "x_Environment" = var.environment  # Use x_Environment directly
+  }
+  
+  # Add azure_attributes block to avoid inconsistency
+  azure_attributes {
+    availability       = "ON_DEMAND_AZURE"
+    first_on_demand    = 1
+    spot_bid_max_price = -1
   }
 }
 
