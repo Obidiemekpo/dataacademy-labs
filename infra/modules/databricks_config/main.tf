@@ -80,7 +80,7 @@ resource "databricks_metastore" "this" {
     "abfss://unity-catalog@%s.dfs.core.windows.net/",
     var.storage_account_name
   )
-  owner = "account users"
+  owner      = "account users"
   depends_on = [time_sleep.wait_for_role_assignment]
 }
 
@@ -117,17 +117,17 @@ resource "databricks_cluster" "small_cluster" {
   spark_version           = "13.3.x-scala2.12"
   node_type_id            = "Standard_DS3_v2"
   autotermination_minutes = 20
-  
+
   autoscale {
     min_workers = 1
     max_workers = 3
   }
-  
+
   spark_conf = {
     "spark.databricks.cluster.profile" : "singleNode"
     "spark.master" : "local[*]"
   }
-  
+
   custom_tags = {
     "ResourceClass" = "SingleNode"
     "Environment"   = var.environment

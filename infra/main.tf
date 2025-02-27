@@ -120,14 +120,14 @@ module "rbac" {
 
 # Databricks Configuration Module (Unity Catalog, Access Connector, and Cluster)
 module "databricks_config" {
-  source                 = "./modules/databricks_config"
-  resource_group_name    = azurerm_resource_group.main.name
-  location               = var.location
-  environment            = var.environment
-  tags                   = var.tags
-  databricks_workspace_id = module.databricks.databricks_workspace_id
+  source                   = "./modules/databricks_config"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = var.location
+  environment              = var.environment
+  tags                     = var.tags
+  databricks_workspace_id  = module.databricks.databricks_workspace_id
   databricks_workspace_url = module.databricks.databricks_workspace_url
-  storage_account_id     = module.storage.storage_account_id
-  storage_account_name   = module.storage.storage_account_name
-  depends_on             = [module.databricks, module.storage]
+  storage_account_id       = module.storage.storage_account_id
+  storage_account_name     = module.storage.storage_account_name
+  depends_on               = [module.databricks, module.storage]
 } 
