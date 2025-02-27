@@ -69,6 +69,33 @@ The infrastructure can be configured using a `terraform.tfvars` file in the `inf
 
 > **Note:** The SQL Server module is temporarily excluded from deployment. To include it, uncomment the SQL module section in `infra/main.tf`.
 
+## Resource Tainting
+
+This repository includes a mechanism to taint (mark for recreation) specific Terraform resources using a text file:
+
+### Using the taint_resources.txt File
+
+1. Edit the `taint_resources.txt` file in the repository root
+2. Add the resource addresses you want to taint, one per line
+3. Commit and push the changes to trigger the workflow
+4. The workflow will taint the specified resources before applying changes
+
+Example `taint_resources.txt` content:
+```
+module.databricks_config.databricks_cluster.small_cluster
+module.storage.azurerm_storage_account.storage_account
+```
+
+The file will be automatically cleared after a successful apply to prevent resources from being repeatedly tainted.
+
+### Resource Addressing
+
+Resource addresses follow Terraform's resource addressing syntax:
+- For resources in the root module: `resource_type.resource_name`
+- For resources in a module: `module.module_name.resource_type.resource_name`
+
+For more information on resource addressing, see the [Terraform documentation](https://developer.hashicorp.com/terraform/cli/state/resource-addressing).
+
 ## Automated Deployment with GitHub Actions
 
 This repository includes GitHub Actions workflows for automated deployment and destruction of the Terraform infrastructure:
@@ -79,9 +106,11 @@ The deployment workflow:
 
 1. Sets up a storage account for Terraform state if it doesn't exist
 2. Initializes Terraform
-3. Validates the Terraform configuration
-4. Plans the deployment (for pull requests)
-5. Applies the changes (for pushes to main branch)
+3. Taints resources specified in the `taint_resources.txt` file (if any)
+4. Validates the Terraform configuration
+5. Plans the deployment (for pull requests)
+6. Applies the changes (for pushes to main branch)
+7. Clears the taint file after successful apply
 
 ### Terraform Destroy Workflow
 
@@ -89,8 +118,9 @@ The repository also includes an automated workflow to destroy all infrastructure
 
 1. Runs automatically at midnight UTC (00:00) every day
 2. Uses the same Terraform state storage as the deployment workflow
-3. Creates and applies a destroy plan to remove all resources
-4. Creates a GitHub issue to notify about the successful destruction
+3. Optionally taints and recreates resources before destroying (useful for partial destroy/recreate)
+4. Creates and applies a destroy plan to remove all resources
+5. Creates a GitHub issue to notify about the successful destruction
 
 The destroy workflow can also be triggered manually with a confirmation step to prevent accidental destruction.
 

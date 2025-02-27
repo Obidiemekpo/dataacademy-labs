@@ -1,0 +1,16 @@
+# Taint Resources File
+#
+# List the Terraform resource addresses that you want to taint (mark for recreation).
+# Each resource address should be on a separate line.
+# Lines starting with # are treated as comments and will be ignored.
+#
+# Examples:
+# module.databricks_config.databricks_cluster.small_cluster
+# azurerm_resource_group.main
+# module.storage.azurerm_storage_account.storage_account
+#
+# For more information on resource addresses, see:
+# https://developer.hashicorp.com/terraform/cli/state/resource-addressing
+#
+# Add your resources to taint below: 
+module.databricks_config.databricks_cluster.small_cluster

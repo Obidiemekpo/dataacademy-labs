@@ -8,9 +8,11 @@ The `terraform-deploy.yml` workflow automates the deployment of Azure resources 
 
 1. Sets up a storage account for Terraform state if it doesn't exist
 2. Initializes Terraform
-3. Validates the Terraform configuration
-4. Plans the deployment (for pull requests)
-5. Applies the changes (for pushes to main branch)
+3. Taints resources specified in the `taint_resources.txt` file (if any)
+4. Validates the Terraform configuration
+5. Plans the deployment (for pull requests)
+6. Applies the changes (for pushes to main branch)
+7. Clears the taint file after successful apply
 
 ## Workflow: Terraform Destroy at Midnight
 
@@ -18,9 +20,10 @@ The `terraform-destroy.yml` workflow automates the destruction of all Azure reso
 
 1. Sets up the same Terraform state storage configuration
 2. Initializes Terraform with the existing state
-3. Creates a destroy plan
-4. Applies the destroy plan to remove all resources
-5. Creates a GitHub issue to notify about the successful destruction
+3. Optionally taints and recreates resources before destroying (useful for partial destroy/recreate)
+4. Creates a destroy plan
+5. Applies the destroy plan to remove all resources
+6. Creates a GitHub issue to notify about the successful destruction
 
 This workflow can be triggered in two ways:
 - Automatically at midnight UTC (00:00) every day via a cron schedule
@@ -35,9 +38,50 @@ To manually trigger the destroy workflow:
 3. Click "Run workflow"
 4. Enter a custom prefix for the storage account name if needed
 5. Type "destroy" in the confirmation field to confirm the destruction
-6. Click "Run workflow"
+6. Optionally check "Taint resources before destroying" if you want to recreate specific resources before destroying
+7. Click "Run workflow"
 
 The confirmation step is a safety measure to prevent accidental destruction of resources.
+
+## Resource Tainting
+
+The workflows include a mechanism to taint (mark for recreation) specific Terraform resources using a text file:
+
+### Using the taint_resources.txt File
+
+1. Edit the `taint_resources.txt` file in the repository root
+2. Add the resource addresses you want to taint, one per line
+3. Commit and push the changes to trigger the workflow
+4. The workflow will taint the specified resources before applying changes
+
+Example `taint_resources.txt` content:
+```
+module.databricks_config.databricks_cluster.small_cluster
+module.storage.azurerm_storage_account.storage_account
+```
+
+The file will be automatically cleared after a successful apply to prevent resources from being repeatedly tainted.
+
+### Resource Addressing
+
+Resource addresses follow Terraform's resource addressing syntax:
+- For resources in the root module: `resource_type.resource_name`
+- For resources in a module: `module.module_name.resource_type.resource_name`
+
+For more information on resource addressing, see the [Terraform documentation](https://developer.hashicorp.com/terraform/cli/state/resource-addressing).
+
+### Tainting Before Destroy
+
+The destroy workflow includes an option to taint resources before destroying. This is useful when you want to:
+1. Recreate specific resources with updated configurations
+2. Test the recreation of resources before a full destruction
+3. Fix resources that are in a bad state before destroying the entire infrastructure
+
+When this option is selected, the workflow will:
+1. Taint the resources specified in the `taint_resources.txt` file
+2. Apply the changes to recreate the tainted resources
+3. Clear the taint file
+4. Proceed with the destroy operation
 
 ## Prerequisites
 
@@ -134,7 +178,10 @@ The storage account name will be `st<your-prefix>tfstate`. The default prefix is
 You can customize the workflow by modifying the following files:
 
 - `.github/workflows/terraform-deploy.yml`: The main workflow file
+- `.github/workflows/terraform-destroy.yml`: The destroy workflow file
 - `.github/scripts/setup_terraform_state.sh`: Script to set up the Terraform state storage account
+- `.github/scripts/taint_resources.sh`: Script to taint resources based on the taint_resources.txt file
+- `taint_resources.txt`: File containing resources to taint
 
 ## Troubleshooting
 
@@ -199,4 +246,18 @@ This means the Databricks provider couldn't authenticate. To resolve this:
 
 1. Ensure the Databricks workspace has been created first
 2. Generate a Databricks personal access token
-3. Set the `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables in the workflow or as GitHub secrets 
+3. Set the `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables in the workflow or as GitHub secrets
+
+#### Tainting Issues
+
+If you encounter issues with the tainting process:
+
+```
+Error: Resource not found
+```
+
+This means the resource address in the taint_resources.txt file doesn't match any resource in the Terraform state. To resolve this:
+
+1. Check the resource address syntax
+2. Run `terraform state list` to see all resources in the state
+3. Ensure the resource exists in the state before trying to taint it 

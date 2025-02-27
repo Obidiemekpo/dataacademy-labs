@@ -15,6 +15,11 @@ on:
         description: 'Type "destroy" to confirm infrastructure destruction'
         required: true
         type: string
+      taint_before_destroy:
+        description: 'Taint resources before destroying (useful for partial destroy/recreate)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   TF_VERSION: '1.0.0'
@@ -74,6 +79,34 @@ jobs:
         ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
       run: terraform init
       working-directory: ${{ env.WORKING_DIR }}
+
+    - name: Make taint script executable
+      if: github.event.inputs.taint_before_destroy == 'true'
+      run: chmod +x ./.github/scripts/taint_resources.sh
+
+    - name: Taint Resources
+      if: github.event.inputs.taint_before_destroy == 'true'
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
+      run: |
+        # Check if taint_resources.txt exists and has non-comment content
+        if [ -f "taint_resources.txt" ] && grep -v "^#" "taint_resources.txt" | grep -q "[^[:space:]]"; then
+          ./.github/scripts/taint_resources.sh --file taint_resources.txt --dir ${{ env.WORKING_DIR }}
+          
+          # Apply changes to recreate tainted resources before destroying
+          cd ${{ env.WORKING_DIR }}
+          terraform apply -auto-approve
+          
+          # Clear the taint file
+          cd ${{ github.workspace }}
+          sed -i '/^[^#]/d' taint_resources.txt
+          echo "Tainted resources recreated and taint file cleared."
+        else
+          echo "No resources to taint or taint file is empty."
+        fi
 
     - name: Terraform Plan Destroy
       env:

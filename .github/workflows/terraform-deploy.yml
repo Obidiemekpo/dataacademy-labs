@@ -6,11 +6,13 @@ on:
     paths:
       - 'infra/**'
       - '.github/workflows/terraform-deploy.yml'
+      - 'taint_resources.txt'
   pull_request:
     branches: [ main ]
     paths:
       - 'infra/**'
       - '.github/workflows/terraform-deploy.yml'
+      - 'taint_resources.txt'
   workflow_dispatch:
     inputs:
       storage_prefix:
@@ -76,6 +78,24 @@ jobs:
       run: terraform init
       working-directory: ${{ env.WORKING_DIR }}
 
+    - name: Make taint script executable
+      run: chmod +x ./.github/scripts/taint_resources.sh
+
+    - name: Taint Resources
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
+      run: |
+        # Check if taint_resources.txt exists and has non-comment content
+        if [ -f "taint_resources.txt" ] && grep -v "^#" "taint_resources.txt" | grep -q "[^[:space:]]"; then
+          ./.github/scripts/taint_resources.sh --file taint_resources.txt --dir ${{ env.WORKING_DIR }}
+        else
+          echo "No resources to taint or taint file is empty."
+        fi
+
     - name: Terraform Format
       run: terraform fmt -check
       working-directory: ${{ env.WORKING_DIR }}
@@ -107,4 +127,11 @@ jobs:
         ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
         ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
       run: terraform apply -auto-approve
-      working-directory: ${{ env.WORKING_DIR }} 
+      working-directory: ${{ env.WORKING_DIR }}
+      
+    - name: Clear Taint File
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && success()
+      run: |
+        # Keep the comments and instructions but remove the actual resource entries
+        sed -i '/^[^#]/d' taint_resources.txt
+        echo "Taint file cleared after successful apply." 
