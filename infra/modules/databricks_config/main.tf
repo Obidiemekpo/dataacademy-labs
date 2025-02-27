@@ -94,30 +94,36 @@ resource "databricks_cluster" "small_cluster" {
   autotermination_minutes = 20
 
   # Single node cluster configuration
+  # For single node clusters, set num_workers to 0 and configure spark_conf
+  num_workers = 0
   spark_conf = {
     "spark.databricks.cluster.profile" : "singleNode"
     "spark.master" : "local[*]"
   }
-  
-  # Must explicitly set num_workers to 0 for single node
-  num_workers = 0
-  
-  # Explicitly set attributes that are causing inconsistencies
-  is_pinned     = false
-  is_single_node = true  # Set to true for single node cluster
-  use_ml_runtime = false
-  
-  # Use custom_tags with the x_Environment key to match what the provider expects
-  custom_tags = {
-    "ResourceClass" = "SingleNode"
-    "x_Environment" = var.environment  # Use x_Environment directly
-  }
-  
-  # Add azure_attributes block to avoid inconsistency
+
+  # Azure-specific attributes
   azure_attributes {
     availability       = "ON_DEMAND_AZURE"
     first_on_demand    = 1
     spot_bid_max_price = -1
+  }
+
+  # Tags for the cluster
+  custom_tags = {
+    "ResourceClass" = "SingleNode"
+    "Environment"   = var.environment
+  }
+
+  # Use lifecycle meta-argument to ignore changes to attributes that might be modified outside of Terraform
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags that might be added by Databricks
+      custom_tags,
+      # Ignore changes to attributes that might be modified by the provider
+      azure_attributes,
+      # Ignore other attributes that might cause drift
+      spark_conf
+    ]
   }
 }
 

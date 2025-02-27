@@ -12,6 +12,33 @@ The `terraform-deploy.yml` workflow automates the deployment of Azure resources 
 4. Plans the deployment (for pull requests)
 5. Applies the changes (for pushes to main branch)
 
+## Workflow: Terraform Destroy at Midnight
+
+The `terraform-destroy.yml` workflow automates the destruction of all Azure resources at midnight UTC. It performs the following steps:
+
+1. Sets up the same Terraform state storage configuration
+2. Initializes Terraform with the existing state
+3. Creates a destroy plan
+4. Applies the destroy plan to remove all resources
+5. Creates a GitHub issue to notify about the successful destruction
+
+This workflow can be triggered in two ways:
+- Automatically at midnight UTC (00:00) every day via a cron schedule
+- Manually through the GitHub Actions interface with a confirmation
+
+### Manual Trigger with Confirmation
+
+To manually trigger the destroy workflow:
+
+1. Go to the Actions tab in your GitHub repository
+2. Select the "Terraform Destroy at Midnight" workflow
+3. Click "Run workflow"
+4. Enter a custom prefix for the storage account name if needed
+5. Type "destroy" in the confirmation field to confirm the destruction
+6. Click "Run workflow"
+
+The confirmation step is a safety measure to prevent accidental destruction of resources.
+
 ## Prerequisites
 
 To use this workflow, you need to set up the following:

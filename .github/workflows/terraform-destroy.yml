@@ -1,0 +1,120 @@
+name: Terraform Destroy at Midnight
+
+on:
+  schedule:
+    # Run at midnight UTC (00:00)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      storage_prefix:
+        description: 'Prefix for the Terraform state storage account name'
+        required: false
+        default: 'dataacademy'
+        type: string
+      confirm_destroy:
+        description: 'Type "destroy" to confirm infrastructure destruction'
+        required: true
+        type: string
+
+env:
+  TF_VERSION: '1.0.0'
+  WORKING_DIR: './infra'
+  STORAGE_PREFIX: ${{ github.event.inputs.storage_prefix || 'dataacademy' }}
+  # Databricks provider configuration
+  DATABRICKS_HOST: ''
+  DATABRICKS_TOKEN: ''
+
+jobs:
+  terraform-destroy:
+    name: 'Terraform Destroy'
+    runs-on: ubuntu-latest
+    
+    # Only run if it's a scheduled run or if the confirmation is "destroy"
+    if: github.event_name == 'schedule' || github.event.inputs.confirm_destroy == 'destroy'
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Extract Azure Credentials
+      id: azure_creds
+      run: |
+        # Extract credentials from the AZURE_CREDENTIALS secret
+        echo "client_id=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .clientId)" >> $GITHUB_OUTPUT
+        echo "client_secret=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .clientSecret)" >> $GITHUB_OUTPUT
+        echo "subscription_id=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .subscriptionId)" >> $GITHUB_OUTPUT
+        echo "tenant_id=$(echo '${{ secrets.AZURE_CREDENTIALS }}' | jq -r .tenantId)" >> $GITHUB_OUTPUT
+
+    - name: Make setup script executable
+      run: chmod +x ./.github/scripts/setup_terraform_state.sh
+
+    - name: Setup Terraform State Storage
+      run: |
+        # Ensure infra directory exists
+        mkdir -p ${{ github.workspace }}/infra
+        
+        # Run the setup script to ensure backend.tf is created
+        ./.github/scripts/setup_terraform_state.sh "${{ env.STORAGE_PREFIX }}"
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Terraform Init
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
+      run: terraform init
+      working-directory: ${{ env.WORKING_DIR }}
+
+    - name: Terraform Plan Destroy
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
+      run: terraform plan -destroy -out=destroy.tfplan
+      working-directory: ${{ env.WORKING_DIR }}
+
+    - name: Terraform Destroy
+      env:
+        ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
+        ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
+        ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
+        ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
+      run: terraform apply destroy.tfplan
+      working-directory: ${{ env.WORKING_DIR }}
+      
+    - name: Notify Destruction Complete
+      if: success()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const issueTitle = 'Infrastructure Destroyed at Midnight';
+          const issueBody = `
+          # Infrastructure Destruction Complete
+          
+          The infrastructure resources have been successfully destroyed at midnight UTC.
+          
+          **Timestamp:** ${new Date().toISOString()}
+          
+          **Workflow Run:** [View Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          To redeploy the infrastructure, you can manually trigger the Terraform Deploy workflow.
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: issueTitle,
+            body: issueBody,
+            labels: ['infrastructure', 'automated']
+          }); 

@@ -71,7 +71,11 @@ The infrastructure can be configured using a `terraform.tfvars` file in the `inf
 
 ## Automated Deployment with GitHub Actions
 
-This repository includes a GitHub Actions workflow for automated deployment of the Terraform infrastructure. The workflow:
+This repository includes GitHub Actions workflows for automated deployment and destruction of the Terraform infrastructure:
+
+### Terraform Deploy Workflow
+
+The deployment workflow:
 
 1. Sets up a storage account for Terraform state if it doesn't exist
 2. Initializes Terraform
@@ -79,9 +83,20 @@ This repository includes a GitHub Actions workflow for automated deployment of t
 4. Plans the deployment (for pull requests)
 5. Applies the changes (for pushes to main branch)
 
+### Terraform Destroy Workflow
+
+The repository also includes an automated workflow to destroy all infrastructure resources at midnight UTC. This is useful for cost management in development environments. The workflow:
+
+1. Runs automatically at midnight UTC (00:00) every day
+2. Uses the same Terraform state storage as the deployment workflow
+3. Creates and applies a destroy plan to remove all resources
+4. Creates a GitHub issue to notify about the successful destruction
+
+The destroy workflow can also be triggered manually with a confirmation step to prevent accidental destruction.
+
 ### Setting up GitHub Actions
 
-To use the GitHub Actions workflow:
+To use the GitHub Actions workflows:
 
 1. Create an Azure Service Principal with Owner permissions:
    ```bash
@@ -96,28 +111,29 @@ To use the GitHub Actions workflow:
    - Value: Paste the entire JSON output from the previous step
    - Click "Add secret"
 
-3. Push changes to the `main` branch or create a pull request to trigger the workflow.
+3. Push changes to the `main` branch or create a pull request to trigger the deployment workflow.
 
 ### Authentication for Terraform Backend
 
-The workflow uses Service Principal authentication for the Terraform backend. The necessary credentials are extracted from the `AZURE_CREDENTIALS` secret and passed to Terraform as environment variables:
+The workflows use Service Principal authentication for the Terraform backend. The necessary credentials are extracted from the `AZURE_CREDENTIALS` secret and passed to Terraform as environment variables:
 
 - `ARM_CLIENT_ID`: The Service Principal client ID
 - `ARM_CLIENT_SECRET`: The Service Principal client secret
 - `ARM_SUBSCRIPTION_ID`: The Azure subscription ID
 - `ARM_TENANT_ID`: The Azure tenant ID
 
-These environment variables are automatically set by the workflow for all Terraform commands.
+These environment variables are automatically set by the workflows for all Terraform commands.
 
 ### Customizing the Terraform State Storage
 
-When manually triggering the workflow, you can specify a custom prefix for the Terraform state storage account name:
+When manually triggering either workflow, you can specify a custom prefix for the Terraform state storage account name:
 
 1. Go to the Actions tab in your GitHub repository
-2. Select the "Terraform Deploy" workflow
+2. Select the desired workflow
 3. Click "Run workflow"
 4. Enter a custom prefix in the "Prefix for the Terraform state storage account name" field
-5. Click "Run workflow"
+5. For the destroy workflow, type "destroy" in the confirmation field
+6. Click "Run workflow"
 
 The storage account name will be `st<your-prefix>tfstate`. This allows you to create separate state storage accounts for different environments or projects.
 
