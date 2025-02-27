@@ -13,4 +13,3 @@
 # https://developer.hashicorp.com/terraform/cli/state/resource-addressing
 #
 # Add your resources to taint below: 
-module.databricks_config.databricks_cluster.small_cluster
