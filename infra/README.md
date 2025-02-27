@@ -8,14 +8,14 @@ This directory contains Terraform modules to provision Azure resources for a dat
 - Azure Storage Account
 - Azure Data Lake Storage Gen2
 - Azure SQL Database (Basic tier) - *temporarily excluded*
-- Databricks Unity Catalog, Access Connector, and Cluster
+- Databricks Unity Catalog and Access Connector - *temporarily disabled*
 
 ## Module Structure
 
 The infrastructure is organized into the following modules:
 
 - `databricks`: Provisions an Azure Databricks workspace
-- `databricks_config`: Configures Databricks with Unity Catalog, Access Connector, and a small cluster
+- `databricks_config`: Configures Databricks with Unity Catalog and Access Connector - *temporarily disabled*
 - `datafactory`: Provisions an Azure Data Factory instance with system-assigned managed identity
 - `keyvault`: Provisions an Azure Key Vault for storing secrets
 - `storage`: Provisions an Azure Storage Account with ADLS Gen2 capabilities
@@ -38,14 +38,13 @@ All resources follow Azure's recommended naming conventions:
 
 ## Databricks Configuration
 
-The `databricks_config` module sets up the following components:
+The `databricks_config` module is configured to set up the following components (currently disabled):
 
 - **Access Connector**: Creates an Azure Databricks Access Connector with a system-assigned managed identity
 - **RBAC**: Grants the Access Connector Storage Blob Data Contributor access to the ADLS Gen2 storage
 - **Unity Catalog Metastore**: Configures a metastore using the ADLS Gen2 storage
 - **Catalog**: Creates a Unity Catalog called "landing"
 - **Schema**: Creates a schema called "landing" within the catalog
-- **Cluster**: Provisions a small Databricks cluster with autoscaling (1-3 workers)
 
 ## RBAC Configuration
 

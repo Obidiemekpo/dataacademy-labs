@@ -2,6 +2,22 @@
 
 This repository contains infrastructure as code (IaC) for provisioning Azure resources for data engineering and analytics workloads.
 
+Prerequisites:
+- Azure CLI
+   Windows :
+    winget install -e --id Microsoft.AzureCLI
+    
+   Linux:
+    sudo apt-get update
+    sudo apt-get install azure-cli
+
+   MacOS:
+    brew install azure-cli
+
+
+- Terraform CLI
+- GitHub CLI
+
 ## Infrastructure
 
 The `infra` directory contains Terraform modules to provision the following Azure resources:
@@ -12,7 +28,7 @@ The `infra` directory contains Terraform modules to provision the following Azur
 - Azure Key Vault
 - Azure Storage Account
 - Azure Data Lake Storage Gen2
-- Databricks Unity Catalog, Access Connector, and Cluster
+- Databricks Unity Catalog and Access Connector - *temporarily disabled*
 
 The infrastructure is designed with proper RBAC (Role-Based Access Control) to allow Azure Data Factory to access all resources securely using managed identity.
 
@@ -32,12 +48,11 @@ All Azure resources follow Microsoft's recommended naming conventions:
 
 ## Databricks Configuration
 
-The infrastructure includes a comprehensive Databricks setup:
+The infrastructure includes a Databricks setup:
 
 - **Workspace**: Standard Databricks workspace
-- **Access Connector**: For Unity Catalog integration with Azure Storage
-- **Unity Catalog**: Metastore, catalog, and schema for data governance
-- **Small Cluster**: Autoscaling cluster (1-3 workers) for development and testing
+- **Access Connector**: For Unity Catalog integration with Azure Storage - *temporarily disabled*
+- **Unity Catalog**: Metastore, catalog, and schema for data governance - *temporarily disabled*
 
 ## Configuration
 
@@ -82,7 +97,6 @@ This repository includes a mechanism to taint (mark for recreation) specific Ter
 
 Example `taint_resources.txt` content:
 ```
-module.databricks_config.databricks_cluster.small_cluster
 module.storage.azurerm_storage_account.storage_account
 ```
 

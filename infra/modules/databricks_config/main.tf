@@ -43,7 +43,6 @@ locals {
   metastore_name        = "metastore-${var.environment}"
   catalog_name          = "landing"
   schema_name           = "landing"
-  cluster_name          = "small-cluster-${var.environment}"
   # Extract the workspace numeric ID from the workspace URL
   # Example URL: adb-2501807314214598.18.azuredatabricks.net
   workspace_numeric_id = split(".", split("-", var.databricks_workspace_url)[1])[0]
@@ -85,29 +84,6 @@ locals {
 //   owner      = "account users"
 //   depends_on = [time_sleep.wait_for_role_assignment]
 // }
-data "databricks_node_type" "smallest" {
-  local_disk = true
-}
-
-data "databricks_spark_version" "latest_lts" {
-  long_term_support = true
-}
-
-resource "databricks_cluster" "small_cluster" {
-  cluster_name            = "Shared Autoscaling"
-  spark_version           = data.databricks_spark_version.latest_lts.id
-  node_type_id            = data.databricks_node_type.smallest.id
-  autotermination_minutes = 20
-  autoscale {
-    min_workers = 1
-    max_workers = 1
-  }
-  spark_conf = {
-    "spark.databricks.io.cache.enabled" : true,
-    "spark.databricks.io.cache.maxDiskUsage" : "50g",
-    "spark.databricks.io.cache.maxMetaDataCache" : "1g"
-  }
-}
 
 // Commenting out outputs for disabled resources
 
@@ -117,8 +93,4 @@ resource "databricks_cluster" "small_cluster" {
 
 // output "metastore_id" {
 //   value = databricks_metastore.this.id
-// }
-
-output "cluster_id" {
-  value = databricks_cluster.small_cluster.id
-} 
+// } 
