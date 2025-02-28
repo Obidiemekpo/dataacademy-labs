@@ -157,7 +157,7 @@ jobs:
         ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
         ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
         ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
-      run: terraform apply -var="prefix=${{ env.RESOURCE_PREFIX }}" destroy.tfplan
+      run: terraform apply destroy.tfplan
       working-directory: ${{ env.WORKING_DIR }}
       
     - name: Notify Destruction Complete
