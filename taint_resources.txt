@@ -12,5 +12,4 @@
 # For more information on resource addresses, see:
 # https://developer.hashicorp.com/terraform/cli/state/resource-addressing
 #
-# Add your resources to taint below: 
-module.databricks.azurerm_databricks_workspace.databricks
+# Add your resources to taint below:
