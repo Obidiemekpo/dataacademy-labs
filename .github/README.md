@@ -43,6 +43,19 @@ To manually trigger the destroy workflow:
 
 The confirmation step is a safety measure to prevent accidental destruction of resources.
 
+## Resource Prefix Generation
+
+Both workflows include automatic resource prefix generation based on the repository owner's name:
+
+1. If no resource prefix is provided or the default "da" is used:
+   - The workflow extracts the repository owner's name
+   - Takes the first letter and last two letters of the name
+   - For example, if the repository owner is "johndoe", the prefix would be "joe"
+   
+2. This ensures unique resource naming across different deployments and helps prevent naming conflicts when multiple people deploy the infrastructure from their own repositories.
+
+3. You can always override this by explicitly providing a resource prefix when triggering the workflow manually.
+
 ## Resource Tainting
 
 The workflows include a mechanism to taint (mark for recreation) specific Terraform resources using a text file:
@@ -56,7 +69,6 @@ The workflows include a mechanism to taint (mark for recreation) specific Terraf
 
 Example `taint_resources.txt` content:
 ```
-module.databricks_config.databricks_cluster.small_cluster
 module.storage.azurerm_storage_account.storage_account
 ```
 

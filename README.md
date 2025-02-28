@@ -50,6 +50,17 @@ For resources with length constraints (like storage accounts), a shortened prefi
 - If the prefix is 4 characters or less, the full prefix is used
 - If the prefix is longer than 4 characters, the first 2 and last 2 characters are used (e.g., "dataacademy" becomes "damy")
 
+### Resource Prefix Generation
+
+When using GitHub Actions workflows, the resource prefix can be:
+1. Explicitly provided as an input parameter
+2. Automatically generated based on the repository owner's name:
+   - Takes the first letter and last two letters of the repository owner's name
+   - For example, if the repository owner is "johndoe", the prefix would be "joe"
+   - This ensures unique resource naming across different deployments
+
+This automatic prefix generation helps prevent naming conflicts when multiple people deploy the infrastructure from their own repositories.
+
 ## Databricks Configuration
 
 The infrastructure includes a Databricks setup:
