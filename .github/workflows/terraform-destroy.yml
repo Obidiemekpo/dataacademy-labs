@@ -29,6 +29,9 @@ env:
   DATABRICKS_HOST: ''
   DATABRICKS_TOKEN: ''
 
+permissions:
+  contents: read
+  issues: write 
 jobs:
   terraform-destroy:
     name: 'Terraform Destroy'
