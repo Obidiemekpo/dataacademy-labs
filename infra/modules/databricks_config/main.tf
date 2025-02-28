@@ -38,11 +38,23 @@ variable "storage_account_name" {
   type        = string
 }
 
+variable "prefix" {
+  description = "Prefix to use for resource naming"
+  type        = string
+  default     = "da"
+}
+
+module "naming" {
+  source              = "../naming"
+  prefix              = var.prefix
+  environment         = var.environment
+  resource_group_name = var.resource_group_name
+}
+
 locals {
-  access_connector_name = "dbw-ac-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
-  metastore_name        = "metastore-${var.environment}"
-  catalog_name          = "landing"
-  schema_name           = "landing"
+  metastore_name        = "metastore-${var.prefix}-${var.environment}"
+  catalog_name          = "landing-${var.prefix}"
+  schema_name           = "landing-${var.prefix}"
   # Extract the workspace numeric ID from the workspace URL
   # Example URL: adb-2501807314214598.18.azuredatabricks.net
   workspace_numeric_id = split(".", split("-", var.databricks_workspace_url)[1])[0]
@@ -52,7 +64,7 @@ locals {
 
 // # Create Databricks Access Connector for Unity Catalog
 // resource "azurerm_databricks_access_connector" "unity" {
-//   name                = local.access_connector_name
+//   name                = module.naming.databricks_access_connector_name
 //   resource_group_name = var.resource_group_name
 //   location            = var.location
 //   identity {

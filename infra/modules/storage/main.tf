@@ -24,15 +24,15 @@ variable "prefix" {
   default     = "da"
 }
 
-locals {
-  # Create a shorter name for storage account
-  # Remove any non-alphanumeric characters and ensure it's under 24 chars
-  storage_account_name = lower(substr("st${var.prefix}${var.environment}${replace(replace(var.resource_group_name, "rg-", ""), "-", "")}", 0, 24))
-  container_name       = "data"
+module "naming" {
+  source              = "../naming"
+  prefix              = var.prefix
+  environment         = var.environment
+  resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_storage_account" "storage_account" {
-  name                     = local.storage_account_name
+  name                     = module.naming.storage_account_name
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
@@ -43,7 +43,7 @@ resource "azurerm_storage_account" "storage_account" {
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "adls" {
-  name               = local.container_name
+  name               = module.naming.container_name
   storage_account_id = azurerm_storage_account.storage_account.id
 }
 

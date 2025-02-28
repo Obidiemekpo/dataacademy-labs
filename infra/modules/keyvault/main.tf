@@ -18,14 +18,23 @@ variable "tags" {
   type        = map(string)
 }
 
+variable "prefix" {
+  description = "Prefix to use for resource naming"
+  type        = string
+  default     = "da"
+}
+
 data "azurerm_client_config" "current" {}
 
-locals {
-  key_vault_name = "kv-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
+module "naming" {
+  source              = "../naming"
+  prefix              = var.prefix
+  environment         = var.environment
+  resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_key_vault" "key_vault" {
-  name                        = local.key_vault_name
+  name                        = module.naming.key_vault_name
   resource_group_name         = var.resource_group_name
   location                    = var.location
   enabled_for_disk_encryption = true

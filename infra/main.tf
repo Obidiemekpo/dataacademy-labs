@@ -59,6 +59,7 @@ module "databricks" {
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   environment         = var.environment
+  prefix              = var.prefix
   tags                = var.tags
   depends_on          = [time_sleep.wait_for_resource_group]
 }
@@ -69,6 +70,7 @@ module "datafactory" {
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   environment         = var.environment
+  prefix              = var.prefix
   tags                = var.tags
   depends_on          = [time_sleep.wait_for_resource_group]
 }
@@ -80,6 +82,7 @@ module "sql" {
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   environment         = var.environment
+  prefix              = var.prefix
   tags                = var.tags
 }
 */
@@ -90,6 +93,7 @@ module "keyvault" {
   resource_group_name = azurerm_resource_group.main.name
   location            = var.location
   environment         = var.environment
+  prefix              = var.prefix
   tags                = var.tags
   depends_on          = [time_sleep.wait_for_resource_group]
 }
@@ -124,6 +128,7 @@ module "databricks_config" {
   resource_group_name      = azurerm_resource_group.main.name
   location                 = var.location
   environment              = var.environment
+  prefix                   = var.prefix
   tags                     = var.tags
   databricks_workspace_id  = module.databricks.databricks_workspace_id
   databricks_workspace_url = module.databricks.databricks_workspace_url

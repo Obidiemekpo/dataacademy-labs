@@ -18,12 +18,21 @@ variable "tags" {
   type        = map(string)
 }
 
-locals {
-  databricks_name = "dbw-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
+variable "prefix" {
+  description = "Prefix to use for resource naming"
+  type        = string
+  default     = "da"
+}
+
+module "naming" {
+  source              = "../naming"
+  prefix              = var.prefix
+  environment         = var.environment
+  resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_databricks_workspace" "databricks" {
-  name                = local.databricks_name
+  name                = module.naming.databricks_name
   resource_group_name = var.resource_group_name
   location            = var.location
   sku                 = "standard"

@@ -11,6 +11,11 @@ on:
         required: false
         default: 'dataacademy'
         type: string
+      resource_prefix:
+        description: 'Prefix for resource naming (used to identify resources)'
+        required: false
+        default: 'da'
+        type: string
       confirm_destroy:
         description: 'Type "destroy" to confirm infrastructure destruction'
         required: true
@@ -25,6 +30,7 @@ env:
   TF_VERSION: '1.0.0'
   WORKING_DIR: './infra'
   STORAGE_PREFIX: ${{ github.event.inputs.storage_prefix || 'dataacademy' }}
+  RESOURCE_PREFIX: ${{ github.event.inputs.resource_prefix || 'da' }}
   # Databricks provider configuration
   DATABRICKS_HOST: ''
   DATABRICKS_TOKEN: ''
@@ -101,7 +107,7 @@ jobs:
           
           # Apply changes to recreate tainted resources before destroying
           cd ${{ env.WORKING_DIR }}
-          terraform apply -auto-approve
+          terraform apply -auto-approve -var="prefix=${{ env.RESOURCE_PREFIX }}"
           
           # Clear the taint file
           cd ${{ github.workspace }}
@@ -117,16 +123,16 @@ jobs:
         ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
         ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
         ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
-      run: terraform plan -destroy -out=destroy.tfplan
+      run: terraform plan -destroy -out=destroy.tfplan -var="prefix=${{ env.RESOURCE_PREFIX }}"
       working-directory: ${{ env.WORKING_DIR }}
 
-    - name: Terraform Destroy
+    - name: Terraform Apply Destroy
       env:
         ARM_CLIENT_ID: ${{ steps.azure_creds.outputs.client_id }}
         ARM_CLIENT_SECRET: ${{ steps.azure_creds.outputs.client_secret }}
         ARM_SUBSCRIPTION_ID: ${{ steps.azure_creds.outputs.subscription_id }}
         ARM_TENANT_ID: ${{ steps.azure_creds.outputs.tenant_id }}
-      run: terraform apply destroy.tfplan
+      run: terraform apply -var="prefix=${{ env.RESOURCE_PREFIX }}" destroy.tfplan
       working-directory: ${{ env.WORKING_DIR }}
       
     - name: Notify Destruction Complete
@@ -152,5 +158,4 @@ jobs:
             repo: context.repo.repo,
             title: issueTitle,
             body: issueBody,
-            labels: ['infrastructure', 'automated']
           }); 

@@ -34,17 +34,21 @@ The infrastructure is designed with proper RBAC (Role-Based Access Control) to a
 
 ## Naming Conventions
 
-All Azure resources follow Microsoft's recommended naming conventions:
+All Azure resources follow Microsoft's recommended naming conventions with the addition of a prefix for identification:
 
 - Resource Group: `rg-<environment>-<project>`
-- Databricks Workspace: `dbw-<environment>-<project>`
-- Databricks Access Connector: `dbw-ac-<environment>-<project>`
-- Data Factory: `adf-<environment>-<project>`
-- SQL Server: `sql-<environment>-<project>`
-- SQL Database: `sqldb-<environment>-<project>`
-- Key Vault: `kv-<environment>-<project>`
-- Storage Account: `st<prefix><environment><project>` (limited to 24 characters)
-- ADLS Gen2 Container: `data`
+- Databricks Workspace: `dbw-<prefix>-<environment>-<project>`
+- Databricks Access Connector: `dbw-ac-<prefix>-<environment>-<project>`
+- Data Factory: `adf-<prefix>-<environment>-<project>`
+- SQL Server: `sql-<prefix>-<environment>-<project>`
+- SQL Database: `sqldb-<prefix>-<environment>-<project>`
+- Key Vault: `kv-<prefix>-<environment>-<project>`
+- Storage Account: `st<short_prefix><environment><project>` (limited to 24 characters)
+- ADLS Gen2 Container: `data-<prefix>`
+
+For resources with length constraints (like storage accounts), a shortened prefix is used:
+- If the prefix is 4 characters or less, the full prefix is used
+- If the prefix is longer than 4 characters, the first 2 and last 2 characters are used (e.g., "dataacademy" becomes "damy")
 
 ## Databricks Configuration
 
@@ -61,7 +65,7 @@ The infrastructure can be configured using a `terraform.tfvars` file in the `inf
 - Resource group name
 - Azure region (currently set to UK South)
 - Environment (dev, test, prod)
-- Prefix for resource naming
+- Prefix for resource naming (used to identify resources)
 - Tags for all resources
 
 ## Getting Started

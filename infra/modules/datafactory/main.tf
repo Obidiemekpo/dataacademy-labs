@@ -18,12 +18,21 @@ variable "tags" {
   type        = map(string)
 }
 
-locals {
-  data_factory_name = "adf-${var.environment}-${lower(replace(var.resource_group_name, "rg-", ""))}"
+variable "prefix" {
+  description = "Prefix to use for resource naming"
+  type        = string
+  default     = "da"
+}
+
+module "naming" {
+  source              = "../naming"
+  prefix              = var.prefix
+  environment         = var.environment
+  resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_data_factory" "data_factory" {
-  name                = local.data_factory_name
+  name                = module.naming.data_factory_name
   resource_group_name = var.resource_group_name
   location            = var.location
   tags                = var.tags
