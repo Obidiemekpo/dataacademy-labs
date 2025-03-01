@@ -80,10 +80,10 @@ resource "azurerm_key_vault_secret" "sql_connection_string" {
   name         = "sql-connection-string"
   value        = var.sql_connection_string
   key_vault_id = azurerm_key_vault.key_vault.id
-  
+
   # Only create this resource if store_sql_connection_string is true
   count = var.store_sql_connection_string ? 1 : 0
-  
+
   # Add tags to the secret
   tags = merge(var.tags, {
     Description = "SQL Server connection string"

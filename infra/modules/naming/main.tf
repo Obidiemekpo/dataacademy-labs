@@ -16,14 +16,14 @@ variable "resource_group_name" {
 locals {
   # Extract the project name from the resource group name (remove "rg-" prefix)
   project_name = lower(replace(var.resource_group_name, "rg-", ""))
-  
+
   # For resources with length constraints, create a shortened prefix
   # Take first two and last two characters of the prefix
   short_prefix = length(var.prefix) <= 4 ? var.prefix : "${substr(var.prefix, 0, 2)}${substr(var.prefix, length(var.prefix) - 2, 2)}"
-  
+
   # For Key Vault, ensure the name is between 3-24 characters
   key_vault_name_full = "kv-${var.prefix}-${var.environment}-${local.project_name}"
-  key_vault_name = length(local.key_vault_name_full) <= 24 ? local.key_vault_name_full : "kv-${local.short_prefix}-${var.environment}-${substr(local.project_name, 0, 10)}"
+  key_vault_name      = length(local.key_vault_name_full) <= 24 ? local.key_vault_name_full : "kv-${local.short_prefix}-${var.environment}-${substr(local.project_name, 0, 10)}"
 }
 
 # Function to generate resource names with prefix

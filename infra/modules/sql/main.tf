@@ -53,18 +53,18 @@ resource "azurerm_mssql_server" "sql_server" {
 }
 
 resource "azurerm_mssql_database" "sql_database" {
-  name        = module.naming.sql_database_name
-  server_id   = azurerm_mssql_server.sql_server.id
-  tags        = var.tags
-  
+  name      = module.naming.sql_database_name
+  server_id = azurerm_mssql_server.sql_server.id
+  tags      = var.tags
+
   # Serverless configuration
   sku_name    = "GP_S_Gen5_1"
   max_size_gb = 32
-  
+
   # Auto-pause settings for serverless
   auto_pause_delay_in_minutes = 20
   min_capacity                = 0.5
-  
+
   # Zone redundancy for high availability
   zone_redundant = false
 }

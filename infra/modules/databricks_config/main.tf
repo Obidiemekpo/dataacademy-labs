@@ -52,9 +52,9 @@ module "naming" {
 }
 
 locals {
-  metastore_name        = "metastore-${var.prefix}-${var.environment}"
-  catalog_name          = "landing-${var.prefix}"
-  schema_name           = "landing-${var.prefix}"
+  metastore_name = "metastore-${var.prefix}-${var.environment}"
+  catalog_name   = "landing-${var.prefix}"
+  schema_name    = "landing-${var.prefix}"
   # Extract the workspace numeric ID from the workspace URL
   # Example URL: adb-2501807314214598.18.azuredatabricks.net
   workspace_numeric_id = split(".", split("-", var.databricks_workspace_url)[1])[0]
