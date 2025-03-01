@@ -88,14 +88,15 @@ module "sql" {
 
 # Key Vault Module
 module "keyvault" {
-  source                = "./modules/keyvault"
-  resource_group_name   = azurerm_resource_group.main.name
-  location              = var.location
-  environment           = var.environment
-  prefix                = var.prefix
-  tags                  = var.tags
-  sql_connection_string = module.sql.sql_connection_string
-  depends_on            = [time_sleep.wait_for_resource_group, module.sql]
+  source                     = "./modules/keyvault"
+  resource_group_name        = azurerm_resource_group.main.name
+  location                   = var.location
+  environment                = var.environment
+  prefix                     = var.prefix
+  tags                       = var.tags
+  sql_connection_string      = module.sql.sql_connection_string
+  store_sql_connection_string = true
+  depends_on                 = [time_sleep.wait_for_resource_group, module.sql]
 }
 
 # Storage Module
