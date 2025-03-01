@@ -7,7 +7,7 @@ This directory contains Terraform modules to provision Azure resources for a dat
 - Azure Key Vault
 - Azure Storage Account
 - Azure Data Lake Storage Gen2
-- Azure SQL Database (Basic tier) - *temporarily excluded*
+- Azure SQL Server with Serverless Database
 - Databricks Unity Catalog and Access Connector - *temporarily disabled*
 
 ## Module Structure
@@ -20,7 +20,7 @@ The infrastructure is organized into the following modules:
 - `keyvault`: Provisions an Azure Key Vault for storing secrets
 - `storage`: Provisions an Azure Storage Account with ADLS Gen2 capabilities
 - `rbac`: Configures Role-Based Access Control (RBAC) for the resources
-- `sql`: Provisions an Azure SQL Server and Database with Basic tier (lowest free tier) - *temporarily excluded*
+- `sql`: Provisions an Azure SQL Server with a Serverless database (GP_S_Gen5_1)
 
 ## Naming Conventions
 
@@ -39,6 +39,29 @@ All resources follow Azure's recommended naming conventions with the addition of
 For resources with length constraints (like storage accounts), a shortened prefix is used:
 - If the prefix is 4 characters or less, the full prefix is used
 - If the prefix is longer than 4 characters, the first 2 and last 2 characters are used (e.g., "dataacademy" becomes "damy")
+
+## SQL Server Configuration
+
+The `sql` module provisions:
+
+- **Azure SQL Server**: A fully managed SQL Server instance
+- **Serverless Database**: A General Purpose Serverless database (GP_S_Gen5_1) that automatically scales and pauses when not in use
+  - Auto-pause after 60 minutes of inactivity
+  - Min capacity: 0.5 vCores
+  - Max capacity: 1 vCore
+  - Max size: 32 GB
+
+The serverless database is cost-effective as it automatically scales based on workload demands and pauses when not in use, so you only pay for actual usage.
+
+## Key Vault Configuration
+
+The `keyvault` module provisions an Azure Key Vault for securely storing sensitive information:
+
+- **Secrets Storage**: Stores sensitive information such as connection strings and credentials
+- **SQL Connection String**: Automatically stores the SQL Server connection string as a secret named `sql-connection-string`
+- **Access Policies**: Configures access policies to control who can access the secrets
+
+This ensures that sensitive connection information is securely stored and can be accessed by authorized services like Data Factory using managed identities.
 
 ## Databricks Configuration
 
@@ -60,7 +83,8 @@ The RBAC module configures the following permissions:
 - Databricks Access Connector has Storage Blob Data Contributor access to the Storage Account
 
 Note: 
-- SQL Server admin access needs to be configured manually through the Azure Portal or using a different approach.
+- SQL Server admin credentials are generated securely using a random password generator.
+- SQL connection string is automatically stored in Key Vault for secure access.
 - For ADLS Gen2 permissions, we assign roles at the Storage Account level rather than the filesystem level, as the filesystem ID is not a valid scope for role assignments.
 
 ## Configuration with terraform.tfvars
@@ -114,6 +138,6 @@ The main variables that can be configured are:
 ## Notes
 
 - Storage account names must be between 3-24 characters, lowercase letters and numbers only. The module automatically truncates the name if it exceeds 24 characters.
-- The SQL Server module is temporarily excluded from deployment. To include it, uncomment the SQL module section in `main.tf`.
 - ADLS Gen2 permissions are assigned at the Storage Account level, not at the filesystem level.
-- The Databricks provider requires authentication. When running locally, you may need to configure authentication using the Databricks CLI or environment variables. 
+- The Databricks provider requires authentication. When running locally, you may need to configure authentication using the Databricks CLI or environment variables.
+- SQL Server connection strings are available as sensitive outputs from the SQL module and are automatically stored in Key Vault for secure access. 

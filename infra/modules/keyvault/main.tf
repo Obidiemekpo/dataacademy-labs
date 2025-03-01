@@ -24,6 +24,13 @@ variable "prefix" {
   default     = "da"
 }
 
+variable "sql_connection_string" {
+  description = "SQL Server connection string to store in Key Vault"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 data "azurerm_client_config" "current" {}
 
 module "naming" {
@@ -60,6 +67,19 @@ resource "azurerm_key_vault" "key_vault" {
       "Get", "List", "Create", "Delete",
     ]
   }
+}
+
+# Store SQL connection string in Key Vault if provided
+resource "azurerm_key_vault_secret" "sql_connection_string" {
+  count        = var.sql_connection_string != "" ? 1 : 0
+  name         = "sql-connection-string"
+  value        = var.sql_connection_string
+  key_vault_id = azurerm_key_vault.key_vault.id
+  
+  # Add tags to the secret
+  tags = merge(var.tags, {
+    Description = "SQL Server connection string"
+  })
 }
 
 output "key_vault_id" {

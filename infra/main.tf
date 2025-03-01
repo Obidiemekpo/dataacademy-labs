@@ -76,7 +76,6 @@ module "datafactory" {
 }
 
 # SQL Module
-/*
 module "sql" {
   source              = "./modules/sql"
   resource_group_name = azurerm_resource_group.main.name
@@ -84,18 +83,19 @@ module "sql" {
   environment         = var.environment
   prefix              = var.prefix
   tags                = var.tags
+  depends_on          = [time_sleep.wait_for_resource_group]
 }
-*/
 
 # Key Vault Module
 module "keyvault" {
-  source              = "./modules/keyvault"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = var.location
-  environment         = var.environment
-  prefix              = var.prefix
-  tags                = var.tags
-  depends_on          = [time_sleep.wait_for_resource_group]
+  source                = "./modules/keyvault"
+  resource_group_name   = azurerm_resource_group.main.name
+  location              = var.location
+  environment           = var.environment
+  prefix                = var.prefix
+  tags                  = var.tags
+  sql_connection_string = module.sql.sql_connection_string
+  depends_on            = [time_sleep.wait_for_resource_group, module.sql]
 }
 
 # Storage Module
@@ -118,8 +118,8 @@ module "rbac" {
   storage_account_id    = module.storage.storage_account_id
   adls_id               = module.storage.storage_account_id
   key_vault_id          = module.keyvault.key_vault_id
-  sql_server_id         = ""                                                    # Commented out SQL module: module.sql.sql_server_id
-  depends_on            = [module.datafactory, module.storage, module.keyvault] # Removed SQL module dependency
+  sql_server_id         = module.sql.sql_server_id
+  depends_on            = [module.datafactory, module.storage, module.keyvault, module.sql]
 }
 
 # Databricks Configuration Module (Unity Catalog, Access Connector, and Cluster)
